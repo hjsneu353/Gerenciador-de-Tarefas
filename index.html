@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tarefas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border: 4px solid black;
+            box-shadow: 8px 8px 0px black;
+            padding: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 4px solid black;
+            padding: 15px;
+            background: #FFD93D;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid black;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: 3px solid black;
+            background: #4ECDC4;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px black;
+            transition: all 0.1s;
+        }
+        
+        .btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px black;
+        }
+        
+        .btn-primary {
+            background: #4ECDC4;
+        }
+        
+        .btn-danger {
+            background: #FF6B6B;
+        }
+        
+        .btn-warning {
+            background: #FFD93D;
+        }
+        
+        .task-list {
+            margin-top: 30px;
+        }
+        
+        .task-item {
+            border: 3px solid black;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: white;
+            position: relative;
+        }
+        
+        .task-item.completed {
+            background: #C8E6C9;
+        }
+        
+        .task-item.alta {
+            border-left: 8px solid #FF6B6B;
+        }
+        
+        .task-item.media {
+            border-left: 8px solid #FFD93D;
+        }
+        
+        .task-item.baixa {
+            border-left: 8px solid #4ECDC4;
+        }
+        
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .task-description {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .task-actions button {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border: 2px solid black;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        /* --- Estilos do Modal de Confirmação --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border: 4px solid black;
+            box-shadow: 8px 8px 0px black;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-actions button {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Gerenciador de Tarefas</h1>
+        
+        <form id="taskForm">
+            <div class="form-group">
+                <label for="titulo">Título *</label>
+                <input type="text" id="titulo" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao">Descrição</label>
+                <textarea id="descricao"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="prioridade">Prioridade *</label>
+                <select id="prioridade" required>
+                    <option value="baixa">Baixa</option>
+                    <option value="media">Média</option>
+                    <option value="alta">Alta</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">➕ Adicionar Tarefa</button>
+            <button type="button" id="clearBtn" class="btn btn-danger" style="margin-left: 10px;">🗑️ Limpar Tudo</button>
+        </form>
+        
+        <div class="task-list" id="taskList"></div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <div class="modal-actions">
+                <button id="modalCancel" class="btn btn-warning">Cancelar</button>
+                <button id="modalConfirm" class="btn btn-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuração da API ---
+        const API_URL = 'http://localhost:3000/api/tasks';
+        
+        let tasks = [];
+        let editingId = null;
+
+        // --- Elementos do DOM ---
+        const form = document.getElementById('taskForm');
+        const taskList = document.getElementById('taskList');
+        const clearBtn = document.getElementById('clearBtn');
+        const tituloInput = document.getElementById('titulo');
+        const descricaoInput = document.getElementById('descricao');
+        const prioridadeInput = document.getElementById('prioridade');
+        
+        // --- Elementos do Modal ---
+        const modal = document.getElementById('confirmModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalConfirm = document.getElementById('modalConfirm');
+        let confirmCallback = null;
+
+        // --- Funções do Modal ---
+        function showModal(message, onConfirm) {
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+            confirmCallback = onConfirm;
+        }
+
+        modalCancel.addEventListener('click', () => {
+            modal.style.display = 'none';
+            confirmCallback = null;
+        });
+
+        modalConfirm.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            modal.style.display = 'none';
+            confirmCallback = null;
+        });
+
+        // --- Funções Principais da API ---
+
+        // 1. Carregar tarefas do servidor
+        async function loadTasks() {
+            try {
+                const response = await fetch(API_URL);
+                tasks = await response.json();
+                renderTasks();
+            } catch (err) {
+                console.error('Erro ao carregar tarefas:', err);
+                taskList.innerHTML = '<p style="color: red;">Não foi possível carregar as tarefas.</p>';
+            }
+        }
+
+        // 2. Renderizar tarefas na tela
+        function renderTasks() {
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<p>Nenhuma tarefa ainda. Adicione uma!</p>';
+                return;
+            }
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                // O servidor retorna 0 ou 1 para booleano, então `task.concluida` funciona
+                taskDiv.className = `task-item ${task.prioridade} ${task.concluida ? 'completed' : ''}`;
+                
+                taskDiv.innerHTML = `
+                    <div class="task-title">${escapeHTML(task.titulo)}</div>
+                    <div class="task-description">${escapeHTML(task.descricao)}</div>
+                    <span class="priority-badge">${escapeHTML(task.prioridade.toUpperCase())}</span>
+                    <div class="task-actions">
+                        <button class="btn btn-primary" onclick="toggleComplete(${task.id})">
+                            ${task.concluida ? '↩️ Desmarcar' : '✅ Concluir'}
+                        </button>
+                        <button class="btn btn-warning" onclick="editTask(${task.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="deleteTask(${task.id})">🗑️ Deletar</button>
+                    </div>
+                `;
+                
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        // 3. Adicionar ou Editar Tarefa (Submit do Formulário)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const taskData = {
+                titulo: tituloInput.value,
+                descricao: descricaoInput.value,
+                prioridade: prioridadeInput.value,
+            };
+
+            let url = API_URL;
+            let method = 'POST';
+
+            if (editingId) {
+                // Se está editando, é um PUT para a URL com ID
+                url = `${API_URL}/${editingId}`;
+                method = 'PUT';
+                
+                // Precisamos enviar o status 'concluida' original para não perdê-lo
+                const taskOriginal = tasks.find(t => t.id === editingId);
+                taskData.concluida = taskOriginal.concluida;
+            }
+
+            try {
+                await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData),
+                });
+                
+                editingId = null;
+                form.reset();
+                form.querySelector('button[type="submit"]').textContent = '➕ Adicionar Tarefa';
+                await loadTasks(); // Recarrega do servidor
+
+            } catch (err) {
+                console.error('Erro ao salvar tarefa:', err);
+            }
+        });
+
+        // 4. Alternar Conclusão
+        window.toggleComplete = async (id) => {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            // Prepara a tarefa atualizada
+            const updatedTask = {
+                ...task, // Mantém titulo, descricao, prioridade
+                concluida: !task.concluida // Inverte o status
+            };
+
+            try {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedTask),
+                });
+                await loadTasks();
+            } catch (err) {
+                console.error('Erro ao atualizar status:', err);
+            }
+        };
+
+        // 5. Preparar Edição
+        window.editTask = (id) => {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            tituloInput.value = task.titulo;
+            descricaoInput.value = task.descricao;
+            prioridadeInput.value = task.prioridade;
+            editingId = id;
+            
+            form.querySelector('button[type="submit"]').textContent = '✏️ Salvar Edição';
+            tituloInput.focus();
+        };
+
+        // 6. Deletar Tarefa
+        window.deleteTask = (id) => {
+            showModal('Tem certeza que deseja deletar esta tarefa?', async () => {
+                try {
+                    await fetch(`${API_URL}/${id}`, {
+                        method: 'DELETE',
+                    });
+                    await loadTasks();
+                } catch (err) {
+                    console.error('Erro ao deletar tarefa:', err);
+                }
+            });
+        };
+
+        // 7. Limpar Todas as Tarefas
+        clearBtn.addEventListener('click', () => {
+            if (tasks.length === 0) return;
+            
+            showModal('Tem certeza que deseja limpar TODAS as tarefas?', async () => {
+                try {
+                    // Cria uma promessa de delete para cada tarefa
+                    const deletePromises = tasks.map(task => 
+                        fetch(`${API_URL}/${task.id}`, { method: 'DELETE' })
+                    );
+                    // Espera todas as promessas terminarem
+                    await Promise.all(deletePromises);
+                    await loadTasks(); // Recarrega a lista (agora vazia)
+                } catch (err) {
+                    console.error('Erro ao limpar tarefas:', err);
+                }
+            });
+        });
+
+        // --- Função Utilitária ---
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return str.toString()
+                 .replace(/&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;')
+                 .replace(/"/g, '&quot;')
+                 .replace(/'/g, '&#039;');
+        }
+
+        // --- Inicialização ---
+        // Carrega as tarefas quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+</body>
+</html>
