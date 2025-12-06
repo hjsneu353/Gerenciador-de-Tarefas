@@ -23,37 +23,54 @@ Casos de Uso:
 
 (Limpar Todas as Tarefas): O usuário clica em "Limpar Tudo" e confirma no modal.
 
--------------------------------------------------------------------------------------
+Este diagrama é composto por duas classes principais e suas relações.
 
-+-----------------------------+
-|    GerenciadorTarefas       | (O seu <script>)
-+-----------------------------+
-| - API_URL: String           | (constante)
-| - tasks: Array<Tarefa>      | (let tasks)
-| - editingId: String         | (let editingId)
-+-----------------------------+
-| + loadTasks()               | (Função principal de busca)
-| + renderTasks()             | (Atualiza a interface)
-| + handleFormSubmit()        | (Evento do form)
-| + toggleComplete(id)        | (window.toggleComplete)
-| + editTask(id)              | (window.editTask)
-| + deleteTask(id)            | (window.deleteTask)
-| + clearAllTasks()           | (Evento do clearBtn)
-| + showModal(msg, callback)  | (Função do modal)
-| + escapeHTML(str)           | (Função utilitária)
-+-----------------------------+
-        |
-        | 1 (gerencia)
-        |
-        | 0..* (contém)
-        |
-+-----------------------------+
-|    Tarefa                   | (O objeto de dados)
-+-----------------------------+
-| - id: Integer               |
-| - titulo: String            |
-| - descricao: String         |
-| - prioridade: String        |
-| - concluida: Boolean        |
-+-----------------------------+
+Classe 1: GerenciadorTarefas Esta é a classe controladora da aplicação.
 
+Atributos (Propriedades):
+
+API_URL: Tipo Texto (String). Armazena o endereço do servidor.
+
+tasks: Tipo Lista (Array). Armazena a coleção de objetos da classe Tarefa.
+
+editingId: Tipo Texto (String). Armazena o ID da tarefa que está sendo editada no momento.
+
+Métodos (Ações):
+
+loadTasks(): Busca as tarefas na API.
+
+renderTasks(): Atualiza a visualização na tela.
+
+handleFormSubmit(): Gerencia o envio do formulário (criar ou atualizar).
+
+toggleComplete(id): Alterna o status da tarefa.
+
+editTask(id): Prepara a tarefa para edição.
+
+deleteTask(id): Remove uma tarefa específica.
+
+clearAllTasks(): Remove todas as tarefas da lista.
+
+showModal(msg, callback): Exibe a janela de confirmação.
+
+escapeHTML(str): Trata o texto para segurança (sanitização).
+
+Classe 2: Tarefa Esta classe representa o objeto de dados.
+
+Atributos (Propriedades):
+
+id: Tipo Inteiro. Identificador único.
+
+titulo: Tipo Texto (String).
+
+descricao: Tipo Texto (String).
+
+prioridade: Tipo Texto (String).
+
+concluida: Tipo Booleano (Verdadeiro/Falso).
+
+Relacionamento entre as Classes:
+
+A relação é de Agregação/Composição.
+
+Um (1) objeto GerenciadorTarefas gerencia zero ou muitas (0..*) instâncias de Tarefa.
